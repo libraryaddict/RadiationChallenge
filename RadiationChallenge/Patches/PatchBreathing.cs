@@ -37,7 +37,6 @@ namespace RadiationChallenge.Patches
             {
                 return false;
             }
-            Console.WriteLine(PatchRadiation.GetRadiativeDepth());
 
             // If the radiation is non-existant
             if (LeakingRadiation.main == null || PatchRadiation.GetRadiativeDepth() < 1)
