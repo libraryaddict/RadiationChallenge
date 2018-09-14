@@ -1,0 +1,13 @@
+﻿{
+	"Id": "RadiationChallenge",
+	"DisplayName": "RadiationChallenge",
+	"Author": "libraryaddict",
+	"Version": "1.0.0",
+	"Requires": [
+		"0Harmony.dll"
+	],
+	"Enable": true,
+	"AssemblyName": "RadiationChallenge.dll",
+	"EntryMethod": "RadiationChallenge.EntryPoint.Patch",
+	"Priority": "Last"
+}
