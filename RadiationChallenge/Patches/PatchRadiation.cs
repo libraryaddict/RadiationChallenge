@@ -3,65 +3,70 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using UnityEngine;
 
 namespace RadiationChallenge.Patches
 {
     public class PatchRadiation
     {
-        public static float GetRadiativeDepth()
-        {
-            // A % of how strong the radiation is compared to max radiation
-            float radiationStrengthPerc = LeakingRadiation.main.currentRadius / LeakingRadiation.main.kMaxRadius;
-
-            // How deep the radiation can reach
-            return (EntryPoint.config.radiativeDepth * 2) * radiationStrengthPerc;
-        }
-
         /// <summary>
         /// Readjust the radiation values dependent on where the player is
         /// </summary>
-        [HarmonyPostfix]
-        public static void Update(PlayerDistanceTracker __instance)
+        [HarmonyPrefix]
+        public static void Radiate(RadiatePlayerInRange __instance)
+        {
+            bool flag = GameModeUtils.HasRadiation() && (NoDamageConsoleCommand.main == null || !NoDamageConsoleCommand.main.GetNoDamageCheat());
+
+            PlayerDistanceTracker tracker = (PlayerDistanceTracker)AccessTools.Field(typeof(RadiatePlayerInRange), "tracker").GetValue(__instance);
+            float distanceToPlayer = GetDistance(tracker);
+
+            if (distanceToPlayer <= __instance.radiateRadius && flag && __instance.radiateRadius > 0f)
+            {
+                float num = Mathf.Clamp01(1f - distanceToPlayer / __instance.radiateRadius);
+                float num2 = num;
+                if (Inventory.main.equipment.GetCount(TechType.RadiationSuit) > 0)
+                {
+                    num -= num2 * 0.5f;
+                }
+                if (Inventory.main.equipment.GetCount(TechType.RadiationHelmet) > 0)
+                {
+                    num -= num2 * 0.23f * 2f;
+                }
+                if (Inventory.main.equipment.GetCount(TechType.RadiationGloves) > 0)
+                {
+                    num -= num2 * 0.23f;
+                }
+                num = Mathf.Clamp01(num);
+                Player.main.SetRadiationAmount(num);
+            }
+            else
+            {
+                Player.main.SetRadiationAmount(0f);
+            }
+        }
+
+        private static float GetDistance(PlayerDistanceTracker tracker)
         {
             // If the object is null, ship hasn't exploded yet or radius is too small
-            if (LeakingRadiation.main == null || !CrashedShipExploder.main.IsExploded() || !GameModeUtils.HasRadiation())
+            if (!RadiationUtils.GetSurfaceRadiationActive())
             {
-                return;
-            }
-
-            float radiationDepth = GetRadiativeDepth();
-
-            if (radiationDepth < 1)
-            {
-                return;
+                return tracker.distanceToPlayer;
             }
 
             // How deep the player is
             float playerDepth = Math.Max(0, -Player.main.transform.position.y);
+            float radiationDepth = RadiationUtils.GetRadiationDepth();
 
             // If they are deeper than the radiation, return
             if (playerDepth > radiationDepth)
             {
-                return;
+                return tracker.distanceToPlayer;
             }
 
             // A % of how close they are to getting out of radiation
             float playerRadiationStrength = playerDepth / radiationDepth;
 
-            var distance = __instance.GetType().GetField("_distanceToPlayer", System.Reflection.BindingFlags.NonPublic
-        | System.Reflection.BindingFlags.Instance);
-            var nearby = __instance.GetType().GetField("_playerNearby", System.Reflection.BindingFlags.NonPublic
-        | System.Reflection.BindingFlags.Instance);
-
-            // The new distance
-            float playerDistance = __instance.maxDistance * playerRadiationStrength;
-            // They're always nearby
-            nearby.SetValue(__instance, true);
-            // Get the current range
-            float cDistance = (float)distance.GetValue(__instance);
-
-            // Set the value that's the closest
-            distance.SetValue(__instance, Math.Min(cDistance, playerDistance));
+            return Math.Min(tracker.distanceToPlayer, tracker.maxDistance * playerRadiationStrength);
         }
     }
 }

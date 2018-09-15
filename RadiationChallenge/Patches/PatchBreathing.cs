@@ -10,41 +10,11 @@ namespace RadiationChallenge.Patches
     public class PatchBreathing
     {
         /// <summary>
-        /// If the ship has exploded, is leaking radiation, player is in the air, not inside a base,
-        /// and not inside the sub
+        /// If the player is in a radiative zone outside a vehicle/base/escape pod
         /// </summary>
         private static bool IsRadiativeAir(Player player)
         {
-            if (!IsCurrentlyRadiative())
-            {
-                return false;
-            }
-
-            // If the player is underwater, inside their base, inside a submersible or inside the
-            // escape pod
-            if (player.transform.position.y < -1 || player.IsInside())
-            {
-                return false;
-            }
-
-            return true;
-        }
-
-        private static bool IsCurrentlyRadiative()
-        {
-            // If ship hasn't exploded yet
-            if (CrashedShipExploder.main == null || !CrashedShipExploder.main.IsExploded() || !GameModeUtils.HasRadiation())
-            {
-                return false;
-            }
-
-            // If the radiation is non-existant
-            if (LeakingRadiation.main == null || PatchRadiation.GetRadiativeDepth() < 1)
-            {
-                return false;
-            }
-
-            return true;
+            return RadiationUtils.GetInAnyRadiation(player.transform) && player.transform.position.y >= -1 && !player.IsInside();
         }
 
         /// <summary>
@@ -52,15 +22,9 @@ namespace RadiationChallenge.Patches
         /// </summary>
         public static bool GetProvidesOxygen(PipeSurfaceFloater __instance, ref bool __result)
         {
-            if (!IsCurrentlyRadiative())
+            if (!RadiationUtils.GetInShipsRadiation(__instance.floater.transform))
             {
-                // Not radiative, so don't handle
-                return true;
-            }
-
-            if ((__instance.floater.transform.position - LeakingRadiation.main.transform.position).magnitude >= LeakingRadiation.main.currentRadius)
-            {
-                // Out of range from radiation
+                // Not in a radiative hotzone
                 return true;
             }
 

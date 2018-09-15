@@ -10,7 +10,7 @@ namespace RadiationChallenge
     public class EntryPoint
     {
         public static RadiationConfig config;
-        private static readonly String configPath = @"./QMods/RadiationChallenge/config.json";
+        private static readonly string configPath = @"./QMods/RadiationChallenge/config.json";
 
         private static void LoadConfig()
         {
@@ -44,8 +44,8 @@ namespace RadiationChallenge
 
             if (config.explosionDepth > 0)
             {
-                harmony.Patch(typeof(CrashedShipExploder).GetMethod("ShakePlayerCamera", BindingFlags.NonPublic | BindingFlags.Instance),
-                     null, new HarmonyMethod(typeof(PatchExplosion).GetMethod("ShakePlayerCamera")));
+                harmony.Patch(typeof(CrashedShipExploder).GetMethod("CreateExplosiveForce", BindingFlags.NonPublic | BindingFlags.Instance),
+                     null, new HarmonyMethod(typeof(PatchExplosion).GetMethod("CreateExplosiveForce")));
             }
 
             if (config.poisonedAir)
@@ -68,8 +68,32 @@ namespace RadiationChallenge
 
             if (config.radiativeDepth > 0)
             {
-                harmony.Patch(AccessTools.Method(typeof(PlayerDistanceTracker), "Update"), null,
-                    new HarmonyMethod(typeof(PatchRadiation).GetMethod("Update")));
+                harmony.Patch(AccessTools.Method(typeof(RadiatePlayerInRange), "Radiate"), null,
+                    new HarmonyMethod(typeof(PatchRadiation).GetMethod("Radiate")));
+
+                if (config.radiativePowerAddMultiplier > 0)
+                {
+                    harmony.Patch(AccessTools.Method(typeof(PowerSystem), "AddEnergy"),
+                        new HarmonyMethod(typeof(PatchPower).GetMethod("AddEnergyBase")), null);
+
+                    harmony.Patch(AccessTools.Method(typeof(EnergyMixin), "AddEnergy"),
+                        new HarmonyMethod(typeof(PatchPower).GetMethod("AddEnergyTool")), null);
+
+                    harmony.Patch(AccessTools.Method(typeof(Vehicle), "AddEnergy", new Type[] { typeof(float) }),
+                        new HarmonyMethod(typeof(PatchPower).GetMethod("AddEnergyVehicle")), null);
+                }
+
+                if (config.radiativePowerConsumptionMultiplier > 0)
+                {
+                    harmony.Patch(AccessTools.Method(typeof(PowerSystem), "ConsumeEnergy"),
+                        new HarmonyMethod(typeof(PatchPower).GetMethod("ConsumeEnergyBase")), null);
+
+                    harmony.Patch(AccessTools.Method(typeof(EnergyMixin), "ConsumeEnergy"),
+                        new HarmonyMethod(typeof(PatchPower).GetMethod("ConsumeEnergyTool")), null);
+
+                    harmony.Patch(AccessTools.Method(typeof(Vehicle), "ConsumeEnergy", new Type[] { typeof(float) }),
+                        new HarmonyMethod(typeof(PatchPower).GetMethod("ConsumeEnergyVehicle")), null);
+                }
             }
 
             if (config.disableFabricatorFood)
@@ -78,13 +102,21 @@ namespace RadiationChallenge
                     new HarmonyMethod(typeof(PatchItems).GetMethod("IsCraftRecipeFulfilled")), null);
             }
 
-            if (config.preventRadiativeFoodPickup)
+            if (config.preventPreRadiativeFoodPickup || config.preventRadiativeFoodPickup)
             {
+                // Disable the hover hand, and disable ability to click
                 harmony.Patch(AccessTools.Method(typeof(PickPrefab), "OnHandHover"),
                     new HarmonyMethod(typeof(PatchItems).GetMethod("HandleItemPickup")), null);
                 harmony.Patch(AccessTools.Method(typeof(PickPrefab), "OnHandClick"),
                     new HarmonyMethod(typeof(PatchItems).GetMethod("HandleItemPickup")), null);
 
+                harmony.Patch(AccessTools.Method(typeof(RepulsionCannon), "ShootObject"),
+                    new HarmonyMethod(typeof(PatchItems).GetMethod("ShootObject")), null);
+
+                harmony.Patch(AccessTools.Method(typeof(PropulsionCannon), "ValidateObject"),
+                    new HarmonyMethod(typeof(PatchItems).GetMethod("ValidateObject")), null);
+
+                // Don't let player smash the resources for seeds
                 harmony.Patch(typeof(Knife).GetMethod("GiveResourceOnDamage", BindingFlags.NonPublic | BindingFlags.Instance),
                     new HarmonyMethod(typeof(PatchItems).GetMethod("GiveResourceOnDamage")), null);
             }

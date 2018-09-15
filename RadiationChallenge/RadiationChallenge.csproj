@@ -56,6 +56,7 @@
     <Compile Include="Patches\PatchBreathing.cs" />
     <Compile Include="Patches\PatchExplosion.cs" />
     <Compile Include="Patches\PatchItems.cs" />
+    <Compile Include="Patches\PatchPower.cs" />
     <Compile Include="Patches\PatchRadiation.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
@@ -64,6 +65,7 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="RadiationConfig.cs" />
+    <Compile Include="RadiationUtils.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Resources.resx">

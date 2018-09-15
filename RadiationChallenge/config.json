@@ -1,1 +1,10 @@
-{"radiativeDepth":30,"explosionDepth":50,"disableFabricatorFood":true,"preventRadiativeFoodPickup":true,"poisonedAir":true}
+{
+    "radiativeDepth": 30.0,
+    "explosionDepth": 50.0,
+    "radiativePowerConsumptionMultiplier": 5.0,
+    "radiativePowerAddMultiplier": 0.2,
+    "disableFabricatorFood": true,
+    "preventPreRadiativeFoodPickup": true,
+    "preventRadiativeFoodPickup": true,
+    "poisonedAir": true
+}

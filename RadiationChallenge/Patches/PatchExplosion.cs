@@ -12,7 +12,7 @@ namespace RadiationChallenge.Patches
         /// Patch explosion to kill below a certain depth
         /// </summary>
         [HarmonyPostfix]
-        public static void ShakePlayerCamera() // Should only be called when aurora explodes
+        public static void CreateExplosiveForce() // Should only be called when aurora explodes
         {
             if (Player.main.transform.position.y <= -EntryPoint.config.explosionDepth) // If they are below a depth of X
             {
