@@ -9,18 +9,20 @@ namespace RadiationChallenge.Patches
 {
     public class PatchRadiation
     {
+        private static bool radiated;
+
         /// <summary>
         /// Readjust the radiation values dependent on where the player is
         /// </summary>
         [HarmonyPrefix]
-        public static void Radiate(RadiatePlayerInRange __instance)
+        public static bool Radiate(RadiatePlayerInRange __instance)
         {
             bool flag = GameModeUtils.HasRadiation() && (NoDamageConsoleCommand.main == null || !NoDamageConsoleCommand.main.GetNoDamageCheat());
 
             PlayerDistanceTracker tracker = (PlayerDistanceTracker)AccessTools.Field(typeof(RadiatePlayerInRange), "tracker").GetValue(__instance);
             float distanceToPlayer = GetDistance(tracker);
 
-            if (distanceToPlayer <= __instance.radiateRadius && flag && __instance.radiateRadius > 0f)
+            if (radiated = distanceToPlayer <= __instance.radiateRadius && flag && __instance.radiateRadius > 0f)
             {
                 float num = Mathf.Clamp01(1f - distanceToPlayer / __instance.radiateRadius);
                 float num2 = num;
@@ -43,6 +45,32 @@ namespace RadiationChallenge.Patches
             {
                 Player.main.SetRadiationAmount(0f);
             }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Forces the radiated symbol to appear on the player's screen, even if they're fully immune
+        /// </summary>
+        [HarmonyPrefix]
+        public static bool IsRadiated(uGUI_RadiationWarning __instance, ref bool __result)
+        {
+            Player main = Player.main;
+
+            if (main == null || !radiated)
+            {
+                __result = false;
+            }
+            else
+            {
+                PDA pda = main.GetPDA();
+
+                // Display if pda is null or isn't in use
+
+                __result = pda == null || !pda.isInUse;
+            }
+
+            return false; // We're doing the same thing as the base method, just more.
         }
 
         private static float GetDistance(PlayerDistanceTracker tracker)

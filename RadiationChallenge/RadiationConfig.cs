@@ -16,5 +16,6 @@ namespace RadiationChallenge
         public bool preventPreRadiativeFoodPickup = true;
         public bool preventRadiativeFoodPickup = true;
         public bool poisonedAir = true;
+        public bool radiationWarning = true;
     }
 }

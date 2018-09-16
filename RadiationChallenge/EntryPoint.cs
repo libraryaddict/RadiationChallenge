@@ -26,7 +26,7 @@ namespace RadiationChallenge
 
         public static void SaveConfig()
         {
-            var json = JsonConvert.SerializeObject(config);
+            var json = JsonConvert.SerializeObject(config, Formatting.Indented);
             File.WriteAllText(configPath, json);
         }
 
@@ -66,10 +66,16 @@ namespace RadiationChallenge
                     new HarmonyMethod(typeof(PatchBreathing).GetMethod("GetProvidesOxygen")), null);
             }
 
+            if (config.radiationWarning)
+            {
+                harmony.Patch(AccessTools.Method(typeof(uGUI_RadiationWarning), "IsRadiated"),
+                    new HarmonyMethod(typeof(PatchRadiation).GetMethod("IsRadiated")), null);
+            }
+
             if (config.radiativeDepth > 0)
             {
-                harmony.Patch(AccessTools.Method(typeof(RadiatePlayerInRange), "Radiate"), null,
-                    new HarmonyMethod(typeof(PatchRadiation).GetMethod("Radiate")));
+                harmony.Patch(AccessTools.Method(typeof(RadiatePlayerInRange), "Radiate"),
+                    new HarmonyMethod(typeof(PatchRadiation).GetMethod("Radiate")), null);
 
                 if (config.radiativePowerAddMultiplier > 0)
                 {
