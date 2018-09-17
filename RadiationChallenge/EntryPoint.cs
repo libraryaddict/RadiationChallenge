@@ -77,6 +77,9 @@ namespace RadiationChallenge
                 harmony.Patch(AccessTools.Method(typeof(RadiatePlayerInRange), "Radiate"),
                     new HarmonyMethod(typeof(PatchRadiation).GetMethod("Radiate")), null);
 
+                harmony.Patch(AccessTools.Method(typeof(DamagePlayerInRadius), "DoDamage"),
+                    new HarmonyMethod(typeof(PatchRadiation).GetMethod("DoDamage")), null);
+
                 if (config.radiativePowerAddMultiplier > 0)
                 {
                     harmony.Patch(AccessTools.Method(typeof(PowerSystem), "AddEnergy"),

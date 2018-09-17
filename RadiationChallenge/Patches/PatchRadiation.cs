@@ -11,6 +11,71 @@ namespace RadiationChallenge.Patches
     {
         private static bool radiated;
 
+        [HarmonyPrefix]
+        public static bool DoDamage(DamagePlayerInRadius __instance)
+        {
+            // If this isn't radiation damage, don't handle
+            if (__instance.damageType != DamageType.Radiation)
+            {
+                return true;
+            }
+
+            if (__instance.enabled && __instance.gameObject.activeInHierarchy && __instance.damageRadius > 0f)
+            {
+                PlayerDistanceTracker tracker = (PlayerDistanceTracker)AccessTools.Field(typeof(DamagePlayerInRadius), "tracker").GetValue(__instance);
+                float distanceToPlayer = GetDistance(tracker);
+
+                if (distanceToPlayer <= __instance.damageRadius)
+                {
+                    if (__instance.doDebug)
+                    {
+                        Debug.Log(string.Concat(new object[]
+                        {
+                        __instance.gameObject.name,
+                        ".DamagePlayerInRadius() - dist/damageRadius: ",
+                        distanceToPlayer,
+                        "/",
+                        __instance.damageRadius,
+                        " => damageAmount: ",
+                        __instance.damageAmount
+                        }));
+                    }
+
+                    float radiationAmount = Player.main.radiationAmount;
+                    if (radiationAmount == 0f)
+                    {
+                        return false;
+                    }
+
+                    if (__instance.doDebug)
+                    {
+                        Debug.Log(string.Concat(new object[]
+                        {
+                        "TakeDamage: ",
+                        __instance.damageAmount,
+                        " ",
+                        __instance.damageType.ToString()
+                        }));
+                    }
+                    Player.main.GetComponent<LiveMixin>().TakeDamage(__instance.damageAmount, __instance.transform.position, __instance.damageType, null);
+                }
+                else if (__instance.doDebug)
+                {
+                    Debug.Log(string.Concat(new object[]
+                    {
+                    __instance.gameObject.name,
+                    ".DamagePlayerInRadius() - dist/damageRadius: ",
+                    distanceToPlayer,
+                    "/",
+                    __instance.damageRadius,
+                    " => no damage"
+                    }));
+                }
+            }
+
+            return false;
+        }
+
         /// <summary>
         /// Readjust the radiation values dependent on where the player is
         /// </summary>

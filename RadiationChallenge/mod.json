@@ -2,7 +2,7 @@
 	"Id": "RadiationChallenge",
 	"DisplayName": "RadiationChallenge",
 	"Author": "libraryaddict",
-	"Version": "1.0.1",
+	"Version": "1.0.2",
 	"Requires": [
 		"0Harmony.dll"
 	],
