@@ -18,7 +18,7 @@ namespace RadiationChallenge
             float radiationStrengthPerc = LeakingRadiation.main.currentRadius / LeakingRadiation.main.kMaxRadius;
 
             // How deep the radiation can reach
-            return (EntryPoint.config.radiativeDepth * 2) * radiationStrengthPerc;
+            return EntryPoint.config.radiativeDepth * radiationStrengthPerc;
         }
 
         public static bool GetRadiationActive()
